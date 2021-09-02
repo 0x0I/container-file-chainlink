@@ -9,7 +9,7 @@ Container File :large_blue_diamond: :link: Chainlink
 [![License: MIT](https://img.shields.io/badge/License-MIT-blueviolet.svg)](https://opensource.org/licenses/MIT)
 
 ...description of the application or service...
-https://logowik.com/content/uploads/images/chainlink-link8987.jpg
+
 **Overview**
   - [Setup](#setup)
     - [Build](#build)
