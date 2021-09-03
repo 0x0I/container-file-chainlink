@@ -1,7 +1,7 @@
 <p><img src="https://avatars1.githubusercontent.com/u/12563465?s=200&v=4" alt="OCI logo" title="oci" align="left" height="70" /></p>
 <p><img src="https://upload.wikimedia.org/wikipedia/commons/d/dd/Chainlink_Logo.png" alt="0xO1 logo" title="0xO1" align="right" height="80" /></p>
 
-Container File :large_blue_diamond: :link: Chainlink
+Container File :cyclone: :link: Chainlink
 =========
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/0x0I/container-file-chainlink?color=yellow)
 [![0x0I](https://circleci.com/gh/0x0I/container-file-chainlink.svg?style=svg)](https://circleci.com/gh/0x0I/container-file-chainlink)

@@ -1,16 +1,16 @@
 filepath        :=      $(PWD)
 versionfile     :=      $(filepath)/version.txt
 version         :=      $(shell cat $(versionfile))
-image_repo      :=      0labs/demo
+image_repo      :=      0labs/chainlink
 
 build:
-	docker build -t $(image_repo):build-$(version) .
+	docker build --no-cache -t $(image_repo):build-$(version) .
 
 test:
-	docker build --target test -t demo:test . && docker run demo:test
+	docker build --target test -t chainlink:test . && docker run chainlink:test
 
 release:
-	docker build --target release --no-cache -t $(image_repo):$(version) .
+	docker build --target release -t $(image_repo):$(version) .
 	docker push $(image_repo):$(version)
 
 latest:
