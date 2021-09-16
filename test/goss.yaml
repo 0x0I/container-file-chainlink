@@ -37,7 +37,6 @@ file:
     filetype: file
     contains:
       - "export ADMIN_CREDENTIALS_FILE=/mnt/.api"
-      - "export EXTRA_ARGS="
 package:
   curl:
     installed: true

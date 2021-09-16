@@ -24,6 +24,7 @@ def status():
 
 
 DEFAULT_SECURITY_OUTPUT_DIR = '/var/tmp/chainlink'
+DEFAULT_SECURITY_CERT_DURATION = '365'
 DEFAULT_OPERATOR_PASSWORD = 'admin'
 DEFAULT_API_HOST_ADDR = 'http://localhost:6688'
 DEFAULT_API_METHOD = 'GET'
@@ -74,7 +75,7 @@ def execute_command(command):
 @click.option('--api-password',
               default=lambda: os.environ.get("API_PASSWORD", DEFAULT_API_PASSWORD),
               show_default=DEFAULT_API_PASSWORD,
-              help='password for chainlink node account')              
+              help='password for chainlink node account')
 def setup_credentials(output_dir, operator_password, api_user, api_password):
     """
     Setup operator wallet and API credentials for secure access
@@ -96,9 +97,38 @@ def setup_credentials(output_dir, operator_password, api_user, api_password):
         with open(pwd_file, 'w') as operator_pwd_file:
             operator_pwd_file.write(operator_password)
 
-    with open(env_file, 'w') as creds_env:
-        extra_args = "{existing} -p {op_pwd_file}".format(existing=os.environ.get("EXTRA_ARGS", ""), op_pwd_file=pwd_file)
-        creds_env.write("export ADMIN_CREDENTIALS_FILE={api}\nexport EXTRA_ARGS='{extra}'".format(api=api_file, extra=extra_args))
+    with open(env_file, 'a') as creds_env:
+        creds_env.write("export ADMIN_CREDENTIALS_FILE={api}\n".format(api=api_file))
+
+@security.command()
+@click.option('--output-dir',
+              default=lambda: os.environ.get("SECURITY_OUTPUT_DIR", DEFAULT_SECURITY_OUTPUT_DIR),
+              show_default=DEFAULT_SECURITY_OUTPUT_DIR,
+              help='directory to output server certificates and keys')
+@click.option('--cert-duration',
+              default=lambda: os.environ.get("SECURITY_CERT_DURATION", DEFAULT_SECURITY_CERT_DURATION),
+              show_default=DEFAULT_SECURITY_CERT_DURATION,
+              help='Days certificate should remain valid for')
+def generate_certs(output_dir, cert_duration):
+    """
+    Generate server certificates for secure HTTPS API access
+    """
+
+    execute_command("mkdir -p {dir}".format(dir=output_dir))
+
+    ssl_config_file = "{dir}/ssl-config".format(dir=output_dir)
+    with open(ssl_config_file, 'w') as ssl_config:
+        ssl_config.write("[dn]\nCN=localhost\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:localhost\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
+    ret = execute_command(
+        "openssl req -x509 -out {dir}/server.crt  -keyout {dir}/server.key -newkey rsa:2048 -nodes -sha256 -days {duration} \
+        -subj /CN=localhost -extensions EXT -config {dir}/ssl-config".format(dir=output_dir, duration=cert_duration)
+    )
+
+    env_file = "{dir}/.env".format(dir=output_dir)
+    with open(env_file, 'a') as creds_env:
+        creds_env.write(
+            "export TLS_CERT_PATH={dir}/server.crt\nexport TLS_KEY_PATH={dir}/server.key\nexport SECURE_COOKIES=true\nexport CHAINLINK_TLS_PORT=".format(dir=output_dir)
+        )
 
 @status.command()
 @click.option('--host-addr',
