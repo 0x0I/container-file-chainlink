@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 
+import json
 import os
 import sys
+import subprocess
 
 import click
+import pickle
+import requests
 
 @click.group()
 @click.option('--debug/--no-debug', default=False)
@@ -14,11 +18,44 @@ def cli(debug):
 def security():
     pass
 
+@cli.group()
+def status():
+    pass
 
-DEFAULT_SECURITY_OUTPUT_DIR = "/var/tmp/chainlink"
-DEFAULT_OPERATOR_PASSWORD = "admin"
-DEFAULT_API_USER = "linknode"
-DEFAULT_API_PASSWORD = "admin"
+
+DEFAULT_SECURITY_OUTPUT_DIR = '/var/tmp/chainlink'
+DEFAULT_OPERATOR_PASSWORD = 'admin'
+DEFAULT_API_HOST_ADDR = 'http://localhost:6688'
+DEFAULT_API_METHOD = 'GET'
+DEFAULT_API_PATH = 'v2/config'
+DEFAULT_API_USER = 'linknode@example.com'
+DEFAULT_API_PASSWORD = 'admin'
+DEFAULT_API_COOKIE_FILE = '/tmp/cookiefile'
+
+
+def print_json(json_blob):
+    print(json.dumps(json_blob, indent=4, sort_keys=True))
+
+def save_cookies(requests_cookiejar, filename):
+    with open(filename, 'wb') as f:
+        pickle.dump(requests_cookiejar, f)
+
+def load_cookies(filename):
+    with open(filename, 'rb') as f:
+        return pickle.load(f)
+
+def execute_command(command):
+    process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
+    output, error = process.communicate()
+
+    if process.returncode > 0:
+        print('Executing command \"%s\" returned a non-zero status code %d' % (command, process.returncode))
+        sys.exit(process.returncode)
+
+    if error:
+        print(error.decode('utf-8'))
+
+    return output.decode('utf-8')
 
 
 @security.command()
@@ -62,6 +99,59 @@ def setup_credentials(output_dir, operator_password, api_user, api_password):
     with open(env_file, 'w') as creds_env:
         extra_args = "{existing} -p {op_pwd_file}".format(existing=os.environ.get("EXTRA_ARGS", ""), op_pwd_file=pwd_file)
         creds_env.write("export ADMIN_CREDENTIALS_FILE={api}\nexport EXTRA_ARGS='{extra}'".format(api=api_file, extra=extra_args))
+
+@status.command()
+@click.option('--host-addr',
+              default=lambda: os.environ.get("API_HOST_ADDR", DEFAULT_API_HOST_ADDR),
+              show_default=DEFAULT_API_HOST_ADDR,
+              help='Chainlink API host address in format <protocol(http/https)>://<IP>:<port>')
+@click.option('--api-user',
+              default=lambda: os.environ.get("API_USER", DEFAULT_API_USER),
+              show_default=DEFAULT_API_USER,
+              help='user email for chainlink API node account')
+@click.option('--api-password',
+              default=lambda: os.environ.get("API_PASSWORD", DEFAULT_API_PASSWORD),
+              show_default=DEFAULT_API_PASSWORD,
+              help='password for chainlink API node account')
+@click.option('--api-method',
+              default=lambda: os.environ.get("API_METHOD", DEFAULT_API_METHOD),
+              show_default=DEFAULT_API_METHOD,
+              help='HTTP method to execute a part of request')
+@click.option('--api-path',
+              default=lambda: os.environ.get("API_PATH", DEFAULT_API_PATH),
+              show_default=DEFAULT_API_PATH,
+              help='Restful API path to target resource')
+@click.option('--cookie-file',
+              default=lambda: os.environ.get("API_COOKIE_FILE", DEFAULT_API_COOKIE_FILE),
+              show_default=DEFAULT_API_COOKIE_FILE,
+              help='path of cookie file to load for API requests')
+def api_request(host_addr, api_user, api_password, api_method, api_path, cookie_file):
+    """
+    Execute RESTful API HTTP request
+    """
+
+    data = {
+        "email": api_user,
+        "password": api_password
+    }
+    resp = requests.post("{host}/sessions".format(host=host_addr), json=data, headers={'Content-Type': 'application/json'})
+    save_cookies(resp.cookies, cookie_file)
+
+    c = load_cookies(cookie_file)
+    try:
+        if api_method.upper() == "POST":
+            resp = requests.post("{host}/{path}".format(host=host_addr, path=api_path), cookies=c)
+        else:
+            resp = requests.get("{host}/{path}".format(host=host_addr, path=api_path), cookies=c)
+    except requests.exceptions.ConnectionError as err:
+        return {
+            "error": "Failed to establish connection to {host} - {error}".format(
+                host=host_addr,
+                error=err
+            )
+        }
+
+    print_json(resp.json())
 
 
 if __name__ == "__main__":

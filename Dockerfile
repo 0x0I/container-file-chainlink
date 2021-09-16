@@ -40,7 +40,7 @@ COPY scripts/entrypoint.sh /usr/local/bin/chainlink-entrypoint
 COPY scripts/chainlink-helper.py /usr/local/bin/chainlink-helper
 RUN chmod 775 /usr/local/bin/chainlink-helper
 
-RUN pip install click requests
+RUN pip install click pickle-mixin requests
 
 ENTRYPOINT ["chainlink-entrypoint"]
 
