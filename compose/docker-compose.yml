@@ -11,8 +11,13 @@ services:
       - "chainlink"
       - "node"
       - "start"
+      - "-p"
+      - "${SECURITY_OUTPUT_DIR:-/var/tmp/chainlink}/.password"
+      - "-a"
+      - "${SECURITY_OUTPUT_DIR:-/var/tmp/chainlink}/.api"
     environment:
-      DATABASE_URL: "postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@${POSTGRES_HOST:-postgres}:${postgres_port:-5432}/${POSTGRES_DB:-postgres}"
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@${POSTGRES_HOST:-postgres}:${postgres_port:-5432}/${POSTGRES_DB:-postgres}?sslmode=${sslmode:-disable}"
+      SECURITY_OUTPUT_DIR:
     env_file:
       - ${env_vars:-.env}
     ports:
