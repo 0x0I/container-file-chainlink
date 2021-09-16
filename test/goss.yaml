@@ -37,6 +37,20 @@ file:
     filetype: file
     contains:
       - "export ADMIN_CREDENTIALS_FILE=/mnt/.api"
+      - "export TLS_CERT_PATH=/mnt/server.crt"
+      - "export TLS_KEY_PATH=/mnt/server.key"
+  /mnt/server.crt:
+    exists: true
+    mode: "0644"
+    owner: root
+    group: root
+    filetype: file
+  /mnt/server.key:
+    exists: true
+    mode: "0600"
+    owner: root
+    group: root
+    filetype: file
 package:
   curl:
     installed: true

@@ -3,8 +3,10 @@
 # Print all commands executed if DEBUG mode enabled
 [ -n "${DEBUG:-""}" ] && set -x
 
-dir="${SECURITY_OUTPUT_DIR:-/var/tmp/chainlink}"
-mkdir -p $dir
+if [ -n "${ENABLE_HTTPS+x}" ]; then
+    dir="${SECURITY_OUTPUT_DIR:-/var/tmp/chainlink}"
+    mkdir -p $dir
 
-# generate SSL/TLS certificates
-chainlink-helper security generate-certs
+    # generate SSL/TLS certificates
+    chainlink-helper security generate-certs
+fi
