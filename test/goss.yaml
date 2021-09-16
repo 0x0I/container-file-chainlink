@@ -12,6 +12,32 @@ file:
     owner: root
     group: root
     filetype: file
+  /mnt/.api:
+    exists: true
+    mode: "0644"
+    owner: root
+    group: root
+    filetype: file
+    contains:
+      - "linknode"
+      - "passw0rd"
+  /mnt/.password:
+    exists: true
+    mode: "0644"
+    owner: root
+    group: root
+    filetype: file
+    contains:
+      - "topsecret"
+  /mnt/.env:
+    exists: true
+    mode: "0644"
+    owner: root
+    group: root
+    filetype: file
+    contains:
+      - "export ADMIN_CREDENTIALS_FILE=/mnt/.api"
+      - "export EXTRA_ARGS="
 package:
   curl:
     installed: true
@@ -26,3 +52,8 @@ command:
     exit-status: 0
   chainlink-helper --help:
     exit-status: 0
+  env:
+    exit-status: 0
+    stdout:
+      - "ADMIN_CREDENTIALS_FILE"
+      - "EXTRA_ARGS"

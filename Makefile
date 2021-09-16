@@ -4,10 +4,10 @@ version         :=      $(shell cat $(versionfile))
 image_repo      :=      0labs/chainlink
 
 build:
-	docker build --no-cache -t $(image_repo):build-$(version) .
+	docker build -t $(image_repo):build-$(version) .
 
 test:
-	docker build --target test -t chainlink:test . && docker run chainlink:test
+	docker build --target test --build-arg chainlink_version=$(version) --tag chainlink:test . && docker run --env-file test/test.env chainlink:test
 
 release:
 	docker build --target release -t $(image_repo):$(version) .

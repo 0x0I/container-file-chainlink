@@ -1,13 +1,9 @@
 #!/usr/bin/env python3
 
-from datetime import datetime
-import json
 import os
-import subprocess
 import sys
 
 import click
-import requests
 
 @click.group()
 @click.option('--debug/--no-debug', default=False)
@@ -15,88 +11,58 @@ def cli(debug):
     pass
 
 @cli.group()
-def status():
+def security():
     pass
 
-###
-# Commands for application configuration customization and inspection
-###
 
-DEFAULT_API_ADDRESS = "http://localhost:6688"
-DEFAULT_API_METHOD = "get"
-DEFAULT_API_PARAMS = ""
+DEFAULT_SECURITY_OUTPUT_DIR = "/var/tmp/chainlink"
+DEFAULT_OPERATOR_PASSWORD = "admin"
+DEFAULT_API_USER = "linknode"
+DEFAULT_API_PASSWORD = "admin"
 
-def print_json(json_blob):
-    print(json.dumps(json_blob, indent=4, sort_keys=True))
 
-def execute_command(command):
-    process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
-    output, error = process.communicate()
-
-    if process.returncode > 0:
-        print('Executing command \"%s\" returned a non-zero status code %d' % (command, process.returncode))
-        sys.exit(process.returncode)
-
-    if error:
-        print(error.decode('utf-8'))
-
-    return output.decode('utf-8')
-
-def execute_jsonrpc(rpc_address, method, params=[]):
-    # prepare inputs for wire transfer
-    for idx, item in enumerate(params):
-        if item.lower() == "false":
-            params[idx] = False
-        elif item.lower() == "true":
-            params[idx] == True
-
-    req = {
-        "jsonrpc": "2.0",
-        "method": method,
-        "params": params,
-        "id": 1
-    }
-    try:
-        result = requests.post(rpc_address, json=req, headers={'Content-Type': 'application/json'})
-    except requests.exceptions.ConnectionError as err:
-        return {
-            "error": "Failed to establish connection to {rpc_addr} - {error}".format(
-                rpc_addr=rpc_address,
-                error=err
-            )
-        }
-
-    if result.status_code == requests.codes.ok:
-        return result.json()
-    else:
-        raise Exception("Bad Request: {res}".format(res=result))
-
-@status.command()
-@click.option('--api-addr',
-              default=lambda: os.environ.get("API_ADDRESS", DEFAULT_API_ADDRESS),
-              show_default=DEFAULT_API_ADDRESS,
-              help='server address to query for API calls')
-@click.option('--method',
-              default=lambda: os.environ.get("API_METHOD", DEFAULT_API_METHOD),
-              show_default=DEFAULT_API_METHOD,
-              help='API HTTP method to execute a part of query')
-@click.option('--params',
-              default=lambda: os.environ.get("API_PARAMS", DEFAULT_API_PARAMS),
-              show_default=DEFAULT_API_PARAMS,
-              help='comma separated list of API query parameters')
-def query_api(api_addr, method, params):
-    """Execute API query
+@security.command()
+@click.option('--output-dir',
+              default=lambda: os.environ.get("SECURITY_OUTPUT_DIR", DEFAULT_SECURITY_OUTPUT_DIR),
+              show_default=DEFAULT_SECURITY_OUTPUT_DIR,
+              help='directory to output security credential files')
+@click.option('--operator-password',
+              default=lambda: os.environ.get("OPERATOR_PASSWORD", DEFAULT_OPERATOR_PASSWORD),
+              show_default=DEFAULT_OPERATOR_PASSWORD,
+              help='password for chainlink node operator account')
+@click.option('--api-user',
+              default=lambda: os.environ.get("API_USER", DEFAULT_API_USER),
+              show_default=DEFAULT_API_USER,
+              help='password for chainlink node account')
+@click.option('--api-password',
+              default=lambda: os.environ.get("API_PASSWORD", DEFAULT_API_PASSWORD),
+              show_default=DEFAULT_API_PASSWORD,
+              help='password for chainlink node account')              
+def setup_credentials(output_dir, operator_password, api_user, api_password):
+    """
+    Setup operator wallet and API credentials for secure access
     """
 
-    result = execute_jsonrpc(
-        rpc_addr,
-        method,
-        params=[] if len(params) == 0 else params.split(',')
-    )
-    if 'error' in result:
-        print_json(result['error'])
+    admin_file = os.environ.get("ADMIN_CREDENTIALS_FILE")
+
+    pwd_file = "{path}/.password".format(path=output_dir)
+    api_file = "{path}/.api".format(path=output_dir)
+    env_file = "{path}/.env".format(path=output_dir)
+    if admin_file:
+        if os.path.isfile(admin_file) or os.path.exists(admin_file):
+            print("Admin credentials file path set but does not exist @{path}".format(path=admin_file))
     else:
-        print_json(result['result'])
+        with open(api_file, 'w') as api_creds_file:
+            api_creds_file.write("{user}\n{pwd}".format(user=api_user, pwd=api_password))
+
+    if not (os.path.isfile(operator_password) or os.path.exists(operator_password)):
+        with open(pwd_file, 'w') as operator_pwd_file:
+            operator_pwd_file.write(operator_password)
+
+    with open(env_file, 'w') as creds_env:
+        extra_args = "{existing} -p {op_pwd_file}".format(existing=os.environ.get("EXTRA_ARGS", ""), op_pwd_file=pwd_file)
+        creds_env.write("export ADMIN_CREDENTIALS_FILE={api}\nexport EXTRA_ARGS='{extra}'".format(api=api_file, extra=extra_args))
+
 
 if __name__ == "__main__":
     cli()

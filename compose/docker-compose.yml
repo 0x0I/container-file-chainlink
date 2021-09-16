@@ -1,0 +1,39 @@
+version: "3"
+
+networks:
+  chainlink:
+
+services:
+  chainlink:
+    image: ${image:-0labs/chainlink:latest}
+    container_name: chainlink
+    command:
+      - "chainlink"
+      - "node"
+      - "start"
+    environment:
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@${POSTGRES_HOST:-postgres}:${postgres_port:-5432}/${POSTGRES_DB:-postgres}"
+    env_file:
+      - ${env_vars:-.env}
+    ports:
+      - ${ui_port:-6688}:6688/tcp
+    volumes:
+      - "${host_data_dir:-/var/tmp/chainlink}:${data_dir:-/chainlink}"
+    networks:
+      - chainlink
+    restart: ${restart_policy:-unless-stopped}
+    depends_on:
+      - postgres
+
+  postgres:
+    image: ${postgres_image:-postgres:latest}
+    container_name: postgres
+    environment:
+      POSTGRES_DB:
+      POSTGRES_USER:
+      POSTGRES_PASSWORD:
+    ports:
+      - ${postgres_port:-5432}:5432
+    networks:
+      - chainlink
+    restart: ${restart_policy:-unless-stopped}
