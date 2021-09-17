@@ -11,7 +11,7 @@ ARG chainlink_version=v0.10.13
 RUN apt update && apt install --yes --no-install-recommends git make curl jq
 
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/${nvm_version}/install.sh | bash
-RUN . ~/.bashrc && nvm install ${node_version} && nvm use ${node_version} && npm install yarn --global
+RUN . ~/.bashrc && nvm install ${node_version} && nvm use ${node_version} && npm install yarn@${yarn_version} --global
 
 WORKDIR /tmp
 RUN git clone --depth 1 --branch ${chainlink_version} https://github.com/smartcontractkit/chainlink
@@ -22,11 +22,9 @@ FROM ubuntu:20.04 as base
 
 RUN apt update && apt install --yes --no-install-recommends \
     ca-certificates \
-    cron \
     curl \
     pip \
     tini \
-    zip unzip \
     # apt cleanup
 	&& apt-get autoremove -y; \
 	apt-get clean; \
@@ -83,7 +81,7 @@ CMD ["chainlink", "node", "start"]
 
 FROM builder as build-tools
 
-RUN cd /tmp/chainlink && . ~/.bashrc && make abigen operator-ui
+RUN cd /tmp/chainlink && . ~/.bashrc && make abigen
 
 # ------- #
 
