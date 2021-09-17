@@ -11,6 +11,8 @@ if [[ -d "$DIR" ]] ; then
 fi
 
 # Update environment according to entrypoint logic
-source "${SECURITY_OUTPUT_DIR:-/var/tmp/chainlink}/.env" || true
+if [[ -f "${SECURITY_OUTPUT_DIR:-/var/tmp/chainlink}/.env" ]]; then
+  source "${SECURITY_OUTPUT_DIR:-/var/tmp/chainlink}/.env" || true
+fi
 
 exec /usr/bin/tini -g -- "$@"

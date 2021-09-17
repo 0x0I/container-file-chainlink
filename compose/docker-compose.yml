@@ -3,6 +3,9 @@ version: "3"
 networks:
   chainlink:
 
+volumes:
+  pgdata:
+
 services:
   chainlink:
     image: ${image:-0labs/chainlink:latest}
@@ -37,8 +40,11 @@ services:
       POSTGRES_DB:
       POSTGRES_USER:
       POSTGRES_PASSWORD:
+      PGDATA: ${PGDATA:-/var/lib/postgresql/data}
     ports:
       - ${postgres_port:-5432}:5432
+    volumes:
+      - "pgdata:${PGDATA:-/var/lib/postgresql/data}"
     networks:
       - chainlink
     restart: ${restart_policy:-unless-stopped}

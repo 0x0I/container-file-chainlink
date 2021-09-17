@@ -54,12 +54,6 @@ file:
 package:
   curl:
     installed: true
-  cron:
-    installed: true
-  unzip:
-    installed: true
-  zip:
-    installed: true
 command:
   chainlink --help:
     exit-status: 0

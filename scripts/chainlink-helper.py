@@ -9,6 +9,7 @@ import click
 import pickle
 import requests
 
+
 @click.group()
 @click.option('--debug/--no-debug', default=False)
 def cli(debug):
@@ -22,7 +23,6 @@ def security():
 def status():
     pass
 
-
 DEFAULT_SECURITY_OUTPUT_DIR = '/var/tmp/chainlink'
 DEFAULT_SECURITY_CERT_DURATION = '365'
 DEFAULT_OPERATOR_PASSWORD = 'admin'
@@ -33,17 +33,8 @@ DEFAULT_API_USER = 'linknode@example.com'
 DEFAULT_API_PASSWORD = 'admin'
 DEFAULT_API_COOKIE_FILE = '/tmp/cookiefile'
 
-
 def print_json(json_blob):
     print(json.dumps(json_blob, indent=4, sort_keys=True))
-
-def save_cookies(requests_cookiejar, filename):
-    with open(filename, 'wb') as f:
-        pickle.dump(requests_cookiejar, f)
-
-def load_cookies(filename):
-    with open(filename, 'rb') as f:
-        return pickle.load(f)
 
 def execute_command(command):
     process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
@@ -118,8 +109,10 @@ def generate_certs(output_dir, cert_duration):
 
     ssl_config_file = "{dir}/ssl-config".format(dir=output_dir)
     with open(ssl_config_file, 'w') as ssl_config:
-        ssl_config.write("[dn]\nCN=localhost\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:localhost\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
-    ret = execute_command(
+        ssl_config.write(
+            "[dn]\nCN=localhost\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:localhost\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth"
+        )
+    execute_command(
         "openssl req -x509 -out {dir}/server.crt  -keyout {dir}/server.key -newkey rsa:2048 -nodes -sha256 -days {duration} \
         -subj /CN=localhost -extensions EXT -config {dir}/ssl-config".format(dir=output_dir, duration=cert_duration)
     )
@@ -164,22 +157,22 @@ def api_request(host_addr, api_user, api_password, api_method, api_path, cookie_
         "email": api_user,
         "password": api_password
     }
-    resp = requests.post("{host}/sessions".format(host=host_addr), json=data, headers={'Content-Type': 'application/json'})
-    save_cookies(resp.cookies, cookie_file)
-
-    c = load_cookies(cookie_file)
     try:
+        # obtain API session cookies
+        resp = requests.post("{host}/sessions".format(host=host_addr), json=data, headers={'Content-Type': 'application/json'})
+
         if api_method.upper() == "POST":
-            resp = requests.post("{host}/{path}".format(host=host_addr, path=api_path), cookies=c)
+            resp = requests.post("{host}/{path}".format(host=host_addr, path=api_path), cookies=resp.cookies)
         else:
-            resp = requests.get("{host}/{path}".format(host=host_addr, path=api_path), cookies=c)
-    except requests.exceptions.ConnectionError as err:
-        return {
-            "error": "Failed to establish connection to {host} - {error}".format(
+            resp = requests.get("{host}/{path}".format(host=host_addr, path=api_path), cookies=resp.cookies)
+        resp.raise_for_status()
+    except requests.exceptions.RequestException as err:
+        sys.exit(print_json({
+            "error": "API request to {host} failed with: {error}".format(
                 host=host_addr,
                 error=err
             )
-        }
+        }))
 
     print_json(resp.json())
 

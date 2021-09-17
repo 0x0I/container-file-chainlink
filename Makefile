@@ -10,7 +10,7 @@ test:
 	docker build --target test --build-arg chainlink_version=$(version) --tag chainlink:test . && docker run --env-file test/test.env chainlink:test
 
 test-compose:
-	cd compose && POSTGRES_PASSWORD=password docker-compose config && docker-compose up -d && \
+	export POSTGRES_PASSWORD=test && cd compose && docker-compose config && docker-compose up -d && \
 	sleep 10 && docker-compose logs 2>&1 | grep "Listening and serving HTTP on port" && docker-compose logs 2>&1 | grep "Postgres event broadcaster: connected" && \
 	docker-compose down
 
