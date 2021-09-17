@@ -1,0 +1,50 @@
+version: "3"
+
+networks:
+  chainlink:
+
+volumes:
+  pgdata:
+
+services:
+  chainlink:
+    image: ${image:-0labs/chainlink:latest}
+    container_name: chainlink
+    command:
+      - "chainlink"
+      - "node"
+      - "start"
+      - "-p"
+      - "${SECURITY_OUTPUT_DIR:-/var/tmp/chainlink}/.password"
+      - "-a"
+      - "${SECURITY_OUTPUT_DIR:-/var/tmp/chainlink}/.api"
+    environment:
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@${POSTGRES_HOST:-postgres}:${postgres_port:-5432}/${POSTGRES_DB:-postgres}?sslmode=${sslmode:-disable}"
+      SECURITY_OUTPUT_DIR:
+    env_file:
+      - ${env_vars:-.env}
+    ports:
+      - ${ui_port:-6688}:6688/tcp
+    volumes:
+      - "${host_data_dir:-/var/tmp/chainlink}:${data_dir:-/chainlink}"
+    networks:
+      - chainlink
+    restart: ${restart_policy:-unless-stopped}
+    depends_on:
+      - postgres
+
+  postgres:
+    image: ${postgres_image:-postgres:latest}
+    container_name: postgres
+    environment:
+      POSTGRES_DB:
+      POSTGRES_USER:
+      POSTGRES_PASSWORD:
+      PGDATA: ${PGDATA:-/var/lib/postgresql/data}
+    ports:
+      - ${postgres_port:-5432}:5432
+    volumes:
+      - "pgdata:${PGDATA:-/var/lib/postgresql/data}"
+    networks:
+      - chainlink
+    restart: ${restart_policy:-unless-stopped}
