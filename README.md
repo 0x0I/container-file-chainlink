@@ -3,7 +3,7 @@
 
 Container File :crystal_ball: :link: Chainlink
 =========
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/0x0I/container-file-chainlink?color=yellow)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/0x0I/container-file-chainlink)
 [![0x0I](https://circleci.com/gh/0x0I/container-file-chainlink.svg?style=svg)](https://circleci.com/gh/0x0I/container-file-chainlink)
 [![Docker Pulls](https://img.shields.io/docker/pulls/0labs/chainlink?style=flat)](https://hub.docker.com/repository/docker/0labs/chainlink)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blueviolet.svg)](https://opensource.org/licenses/MIT)
