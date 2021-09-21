@@ -17,7 +17,7 @@ or included within an environment config file located either at a `.env` file wi
 | *API_USER* | Chainlink node operator http/s API username |
 | *API_PASSWORD* | Chainlink node operator http/s API password |
 | **..or..** *ADMIN_CREDENTIALS_FILE* | text file containing admin credentials (api username, password) for logging in |
-| *OPERATOR_PASSWORD* | node operator password account |
+| *OPERATOR_PASSWORD* | node operator wallet password |
 | *POSTGRES_PASSWORD* | password to access required backend postgres database |
 
 **Optional**
