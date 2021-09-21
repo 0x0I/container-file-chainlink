@@ -10,11 +10,10 @@ or included within an environment config file located either at a `.env` file wi
 
 ## Config
 
-
 **Required**
 
 | var | description |
-| :---: | :---: |
+| --- | :---: |
 | *API_USER* | Chainlink node operator http/s API username |
 | *API_PASSWORD* | Chainlink node operator http/s API password |
 | **..or..** *ADMIN_CREDENTIALS_FILE* | text file containing admin credentials (api username, password) for logging in |
@@ -24,11 +23,12 @@ or included within an environment config file located either at a `.env` file wi
 **Optional**
 
 | var | description | default |
-| :---: | :---: | :---: |
+| --- | :---: | :---: |
 | *image* | Chainlink service container image to deploy | `0labs/chainlink:latest` |
 | *SECURITY_OUTPUT_DIR* | directory within container to maintain secure credentials files | `/var/tmp/chainlink` |
 | *SECURITY_CERT_DURATION* | TTL or duration (in days) prior to expiration for generated certs | `365` |
 | *ui_port* | Chainlink node operation web UI service port | `6688` |
+| *https_port* | Chainlink node operation web UI HTTPS service port | `6689` |
 | *POSTGRES_USER* | username to access backend postgres database | `postgres` |
 | *POSTGRES_HOST* | host address of backend postgres database | `postgres` |
 | *POSTGRES_DB* | database name of backend postgres instance | `postgres` |
@@ -65,13 +65,13 @@ ETH_CHAIN_ID=1
 ETH_URL=ws://ethereum-rpc.mainnet.01labs.net:8546
 LOG_LEVEL=debug
 
-docker-compose up -d  && docker-compose exec geth geth-helper status sync-progress
+docker-compose up
 ```
 
 * Allow node API service to accept incoming requests for all interfaces and enable backup Ethereum nodes:
 ```
 # cat .env
-ALLOW_ORIGINS=*ETH_HTTP_URL
+ALLOW_ORIGINS=*
 ETH_URL=ws://ethereum-rpc.mainnet.01labs.net:8546
 ETH_HTTP_URL=http://ethereum-rpc.mainnet.01abs.net:8545
 ETH_SECONDARY_URLS=https://mainnet.infura.io/v3/<YOUR-PROJECT-ID>,https://mainnet.rpc-backup:8545
@@ -98,5 +98,5 @@ POSTGRES_DB=chainlink
 POSTGRES_USER=my-user
 POSTGRES_PASSWORD=topsecret
 
-docker-compose up -d
+docker-compose up
 ```

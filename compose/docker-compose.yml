@@ -25,6 +25,7 @@ services:
       - ${env_vars:-.env}
     ports:
       - ${ui_port:-6688}:6688/tcp
+      - ${https_port:-6689}:6689/tcp
     volumes:
       - "${host_data_dir:-/var/tmp/chainlink}:${data_dir:-/chainlink}"
     networks:
