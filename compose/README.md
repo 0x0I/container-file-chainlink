@@ -1,92 +1,102 @@
-# Geth :cloud: Compose
+# Chainlink :cloud: Compose
 
 :octocat: Custom configuration of this deployment composition can be provided by setting environment variables of the operation environment explicitly:
 
-`export chain=mainnet`
+`export API_USER=my-user`
 
 or included within an environment config file located either at a `.env` file within the same directory or specified via the `env_vars` environment variable.
 
-`export env_vars=/home/user/.ethereum/mainnet_vars.env`
+`export env_vars=/home/user/.chainlink/vars.env`
 
 ## Config
 
-
 **Required**
 
-`none`
+| var | description |
+| --- | :---: |
+| *API_USER* | Chainlink node operator http/s API username |
+| *API_PASSWORD* | Chainlink node operator http/s API password |
+| **..or..** *ADMIN_CREDENTIALS_FILE* | text file containing admin credentials (api username, password) for logging in |
+| *OPERATOR_PASSWORD* | node operator password account |
+| *POSTGRES_PASSWORD* | password to access required backend postgres database |
 
 **Optional**
 
 | var | description | default |
-| :---: | :---: | :---: |
-| *image* | Geth service container image to deploy | `0labs/geth:latest` |
-| *chain* | Ethereum network/chain to connect geth instance to | `rinkeby` |
-| *GETH_CONFIG_DIR* | configuration directory path within container | `/etc/geth` |
-| *p2p_port* | Peer-to-peer network discovery and communication listening port | `30303` |
-| *rpc_port* | HTTP-RPC server listening portport | `8545` |
-| *websocket_port* | WS-RPC server listening port | `8546` |
-| *metrics_port* | Metrics HTTP server listening port | `6060` |
-| *metrics_addr* | Enable stand-alone metrics HTTP server listening interface | `127.0.0.1` |
-| *env_vars* | Path to environment file to load by compose Geth container | `.env` |
-| *host_data_dir* | Host directory to store client runtime/operational data | `/var/tmp/geth` |
+| --- | :---: | :---: |
+| *image* | Chainlink service container image to deploy | `0labs/chainlink:latest` |
+| *SECURITY_OUTPUT_DIR* | directory within container to maintain secure credentials files | `/var/tmp/chainlink` |
+| *SECURITY_CERT_DURATION* | TTL or duration (in days) prior to expiration for generated certs | `365` |
+| *ui_port* | Chainlink node operation web UI service port | `6688` |
+| *https_port* | Chainlink node operation web UI HTTPS service port | `6689` |
+| *POSTGRES_USER* | username to access backend postgres database | `postgres` |
+| *POSTGRES_HOST* | host address of backend postgres database | `postgres` |
+| *POSTGRES_DB* | database name of backend postgres instance | `postgres` |
+| *env_vars* | Path to environment file to load by compose Chainlink container (see [list](https://docs.chain.link/docs/configuration-variables/) of available config envvars) | `.env` |
+| *host_data_dir* | host directory to store node runtime/operational data | `/var/tmp/chainlink` |
 | *restart_policy* | container restart policy | `unless-stopped` |
-| *exporter_image* | Geth data exporter image to deploy | `hunterlong/gethexporter:latest` |
-| *exporter_rpc_addr* | Network address <ip:port> of geth rpc instance to export data from | `http://localhost:8545` |
-| *exporter_port* | Exporter metrics collection listening port | `10090` |
+| *postgres_image* | Postgres DB image to deploy | `postgres:latest` |
+| *postgres_port* | Postgres DB container listening port | `5432` |
 
 ## Deploy examples
 
-* Launch an Ethereum light client and connect it to the Ropsten, best current like-for-like representation of Ethereum, PoW (Proof of Work) test network:
+* Launch a Chainlink node connected to the Rinkeby Ethereum testnet:
 ```
 # cat .env
-chain=ropsten
-CONFIG-Eth-SyncMode=light
+SECURITY_OUTPUT_DIR=/mnt/secure
+OPERATOR_PASSWORD=ABCabc123!@#$
+API_USER=linknode@example.com
+API_PASSWORD=passw0rd
+ETH_CHAIN_ID=4
+LINK_CONTRACT_ADDRESS=0x01BE23585060835E02B77ef475b0Cc51aA1e0709
+ETH_URL=ws://ethereum-rpc.rinkeby.01labs.net:8546
 
 docker-compose up
 ```
 
-* View sync progress of active local full-node:
+* Deploy non-default Chainlink node container image againt Ethereum mainnet with debug logging:
 ```
 # cat .env
-chain=mainnet
-CONFIG-Eth-SyncMode=full
-
-docker-compose up -d  && docker-compose exec geth geth-helper status sync-progress
-```
-
-* Run *fast* sync node with automatic daily backups of custom keystore directory:
-```
-# cat .env
-chain=mainnet
-CONFIG-Eth-SyncMode=fast
-KEYSTORE_DIR=/tmp/keystore
-AUTO_BACKUP_KEYSTORE=true
-BACKUP_INTERVAL='0 * * * *'
-BACKUP_PASSWORD=<secret>
+image=0labs/chainlink:0.10.13
+OPERATOR_PASSWORD=ABCabc123!@#$
+API_USER=linknode@example.com
+API_PASSWORD=passw0rd
+ETH_CHAIN_ID=1
+ETH_URL=ws://ethereum-rpc.mainnet.01labs.net:8546
+LOG_LEVEL=debug
 
 docker-compose up
 ```
 
-* Customize Geth deploy image and p2p port
+* Allow node API service to accept incoming requests for all interfaces and enable backup Ethereum nodes:
 ```
 # cat .env
-image=0labs/geth:v0.1.0
-p2p_port=30313
+ALLOW_ORIGINS=*
+ETH_URL=ws://ethereum-rpc.mainnet.01labs.net:8546
+ETH_HTTP_URL=http://ethereum-rpc.mainnet.01abs.net:8545
+ETH_SECONDARY_URLS=https://mainnet.infura.io/v3/<YOUR-PROJECT-ID>,https://mainnet.rpc-backup:8545
 
 docker-compose up
 ```
 
-* Import account from keystore backup stored on an attached USB drive:
+* Activate HTTPS connections to the API service and store generated certificates at custom host location:
 ```
 # cat .env
-host_data_dir=/tmp/geth
-BACKUP_PASSWORD=<secret>
-BACKUP_PATH=/tmp/geth/keys/my-wallets.zip
+ENABLE_HTTPS=true
+SECURITY_OUTPUT_DIR=/chainlink/secure/
+SECURITY_CERT_DURATION=30
+sslmode=prefer
 
-docker-compose up -d
+docker-compose up
+```
 
-cp /path/to/usb/my-wallets.zip /tmp/geth/keys
-docker-compose exec geth geth-helper account import-backup
+* Connect to non-default Postres db instance with custom credentials:
+```
+# cat .env
+POSTGRES_HOST=my-postgres.prod.instance
+POSTGRES_DB=chainlink
+POSTGRES_USER=my-user
+POSTGRES_PASSWORD=topsecret
 
-docker-compose exec geth geth account import /root/.ethereum/keystore/a-wallet
+docker-compose up
 ```
