@@ -4,7 +4,7 @@ version         :=      $(shell cat $(versionfile))
 image_repo      :=      0labs/chainlink
 
 build:
-	docker build -t $(image_repo):build-$(version) .
+	docker build -t $(image_repo):build-$(version) --build-arg chainlink_version=$(version) .
 
 test:
 	docker build --target test --build-arg chainlink_version=$(version) --tag chainlink:test . && docker run --env-file test/test.env chainlink:test
@@ -15,7 +15,7 @@ test-compose:
 	docker-compose down
 
 release:
-	docker build --target release -t $(image_repo):$(version) .
+	docker build --target release -t $(image_repo):$(version) --build-arg chainlink_version=$(version) .
 	docker push $(image_repo):$(version)
 
 latest:
