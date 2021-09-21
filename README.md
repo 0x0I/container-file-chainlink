@@ -204,8 +204,6 @@ Options:
                        (GET)]
   --api-path TEXT      Restful API path to target resource  [default:
                        (v2/config)]
-  --cookie-file TEXT   path of cookie file to load for API requests  [default:
-                       (/tmp/cookiefile)]
   --help               Show this message and exit.
 ```
 
@@ -224,9 +222,6 @@ Options:
 `$API_PATH=<string>` (**default**: `v2/config`)
 - RESTful API path to target resource
 
-`$API_COOKIE_FILE=</container/path/to/cookie/file>` (**default**: `/tmp/cookiefile`)
-- path of cookie file to load for API requests
-RPC
 The output consists of a JSON blob corresponding to the expected return object for a given API method. Reference [Chainlink's API wiki](https://github.com/smartcontractkit/chainlink/wiki/REST-API) for more details.
 
 ###### example
