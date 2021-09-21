@@ -6,7 +6,6 @@ import sys
 import subprocess
 
 import click
-import pickle
 import requests
 
 
@@ -31,7 +30,6 @@ DEFAULT_API_METHOD = 'GET'
 DEFAULT_API_PATH = 'v2/config'
 DEFAULT_API_USER = 'linknode@example.com'
 DEFAULT_API_PASSWORD = 'admin'
-DEFAULT_API_COOKIE_FILE = '/tmp/cookiefile'
 
 def print_json(json_blob):
     print(json.dumps(json_blob, indent=4, sort_keys=True))
@@ -144,11 +142,7 @@ def generate_certs(output_dir, cert_duration):
               default=lambda: os.environ.get("API_PATH", DEFAULT_API_PATH),
               show_default=DEFAULT_API_PATH,
               help='Restful API path to target resource')
-@click.option('--cookie-file',
-              default=lambda: os.environ.get("API_COOKIE_FILE", DEFAULT_API_COOKIE_FILE),
-              show_default=DEFAULT_API_COOKIE_FILE,
-              help='path of cookie file to load for API requests')
-def api_request(host_addr, api_user, api_password, api_method, api_path, cookie_file):
+def api_request(host_addr, api_user, api_password, api_method, api_path):
     """
     Execute RESTful API HTTP request
     """
@@ -159,13 +153,17 @@ def api_request(host_addr, api_user, api_password, api_method, api_path, cookie_
     }
     try:
         # obtain API session cookies
-        resp = requests.post("{host}/sessions".format(host=host_addr), json=data, headers={'Content-Type': 'application/json'})
+        session = requests.post("{host}/sessions".format(host=host_addr), json=data, headers={'Content-Type': 'application/json'})
 
         if api_method.upper() == "POST":
-            resp = requests.post("{host}/{path}".format(host=host_addr, path=api_path), cookies=resp.cookies)
+            resp = requests.post("{host}/{path}".format(host=host_addr, path=api_path), cookies=session.cookies)
         else:
-            resp = requests.get("{host}/{path}".format(host=host_addr, path=api_path), cookies=resp.cookies)
+            resp = requests.get("{host}/{path}".format(host=host_addr, path=api_path), cookies=session.cookies)
+
+        # signal error if non-OK response status
         resp.raise_for_status()
+
+        print_json(resp.json())
     except requests.exceptions.RequestException as err:
         sys.exit(print_json({
             "error": "API request to {host} failed with: {error}".format(
@@ -173,8 +171,8 @@ def api_request(host_addr, api_user, api_password, api_method, api_path, cookie_
                 error=err
             )
         }))
-
-    print_json(resp.json())
+    except json.decoder.JSONDecodeError:
+        print(resp.text)
 
 
 if __name__ == "__main__":
