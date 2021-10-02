@@ -309,7 +309,7 @@ API_HOST_ADDR=http://chainlink-api.mainnet.01labs.net:6688
 API_METHOD=GET
 API_PATH=v2/config
 
-docker run --env-file .env 0labs/chainlink:latest chainlink-helper status api-request
+docker exec --env-file .env 0labs/chainlink:latest chainlink-helper status api-request
 ```
 
 License
