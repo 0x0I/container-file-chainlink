@@ -57,7 +57,7 @@ docker-compose up
 * Deploy non-default Chainlink node container image againt Ethereum mainnet with debug logging:
 ```
 # cat .env
-image=0labs/chainlink:0.10.13
+image=0labs/chainlink:v0.10.13
 OPERATOR_PASSWORD=ABCabc123!@#$
 API_USER=linknode@example.com
 API_PASSWORD=passw0rd
