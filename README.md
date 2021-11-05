@@ -28,6 +28,22 @@ Guidelines on running `0labs/chainlink` containers are available and organized a
 
 #### Build
 
+##### args
+
+| Name  | description |
+| ------------- | ------------- |
+| `build_version` | base image to utilize for building application binaries/artifacts |
+| `nvm_version` | version of the `nvm` tool to use for application builds |
+| `node_version` | version of the `node` tool to use for application builds |
+| `yarn_version` | version of the `yarn` tool to use for application builds |
+| `chainlink_version` | `chainlink` application version to build within image |
+| `goss_version` | `goss` testing tool version to install within image test target |
+| `version` | container/image infra application version |
+
+```bash
+docker build --build-arg <arg>=<value> -t <tag> .
+```
+
 ##### targets
 
 | Name  | description |
