@@ -37,3 +37,10 @@ jobs:
                 -e DOCKERHUB_ORG=0labs
                 -e DOCKERHUB_REPO=chainlink gofunky/readmyhub:stable
 
+         - when:
+              condition:
+                equal: [ master, << pipeline.git.branch >> ]
+              steps:
+                - run:
+                     name: release master version as latest
+                     command: make latest
