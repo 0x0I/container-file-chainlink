@@ -287,7 +287,7 @@ ETH_CHAIN_ID=4
 LINK_CONTRACT_ADDRESS=0x01BE23585060835E02B77ef475b0Cc51aA1e0709
 ETH_URL=ws://ethereum-rpc.rinkeby.01labs.net:8546
 
-docker run --env--file .env 0labs/chainlink:latest ...
+docker run --env--file .env 0labs/chainlink:latest
 ```
 
 * Allow node API service to accept incoming requests for all interfaces and enable backup Ethereum nodes:
@@ -298,7 +298,7 @@ ETH_URL=ws://ethereum-rpc.mainnet.01labs.net:8546
 ETH_HTTP_URL=http://ethereum-rpc.mainnet.01labs.net:8545
 ETH_SECONDARY_URLS=https://mainnet.infura.io/v3/<YOUR-PROJECT-ID>,https://mainnet.rpc-backup:8545
 
-docker run --env-file .env 0labs/chainlink:latest ...
+docker run --env-file .env 0labs/chainlink:latest
 ```
 
 * Activate HTTPS connections to the API service and store generated certificates at custom host location:
@@ -308,7 +308,7 @@ ENABLE_HTTPS=true
 SECURITY_OUTPUT_DIR=/chainlink/secure/
 SECURITY_CERT_DURATION=30
 
-docker run -v /mnt/secure:/chainlink/secure --env-file .env 0labs/chainlink:latest ...
+docker run -v /mnt/secure:/chainlink/secure --env-file .env 0labs/chainlink:latest
 ```
 
 * Connect to non-default Postres db instance with custom credentials:
@@ -316,6 +316,8 @@ docker run -v /mnt/secure:/chainlink/secure --env-file .env 0labs/chainlink:late
 cat .env
 ETH_CHAIN_ID=1
 DATABASE_URL=postgresql://ops:secret@postgres.prod.net:5432/chainlink
+  
+docker run --env-file .env 0labs/chainlink:latest
 ```
 
 * Query Chainlink API of running node for service configuration:
@@ -325,7 +327,7 @@ API_HOST_ADDR=http://chainlink-api.mainnet.01labs.net:6688
 API_METHOD=GET
 API_PATH=v2/config
 
-docker exec --env-file .env 0labs/chainlink:latest chainlink-helper status api-request
+docker exec --env-file .env chainlink chainlink-helper status api-request
 ```
 
 License
