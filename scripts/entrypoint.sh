@@ -15,4 +15,8 @@ if [[ -f "${SECURITY_OUTPUT_DIR:-/var/tmp/chainlink}/.env" ]]; then
   source "${SECURITY_OUTPUT_DIR:-/var/tmp/chainlink}/.env" || true
 fi
 
-exec /usr/bin/tini -g -- "$@"
+if [[ -n "${EXTRA_ARGS:-""}" ]]; then
+  exec /usr/bin/tini -g -- $@ ${EXTRA_ARGS}
+else
+  exec /usr/bin/tini -g -- "$@"
+fi

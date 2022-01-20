@@ -79,6 +79,13 @@ _The following examples demonstrate exporting the aforementioned config envvars 
   docker run --env-file .env 0labs/chainlink:latest 
   ```
 
+  `$EXTRA_ARGS=<string>` (**default**: `''`)
+- space separated list of command-line flags to pass at run-time
+
+  ```bash
+  docker run --env EXTRA_ARGS="--debug" 0labs/chainlink:latest
+  ```
+
 _...and reference below for network/chain identification and communication configs:_ 
 
 ###### port mappings
