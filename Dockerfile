@@ -1,12 +1,12 @@
-ARG build_version="golang:1.16-stretch"
+ARG build_version="golang:1.17-stretch"
 
 # ******* Stage: builder ******* #
 FROM ${build_version} as builder
 
 ARG nvm_version=v0.38.0
-ARG node_version=v12.18
+ARG node_version=v12.22
 ARG yarn_version=1.22.11
-ARG chainlink_version=v0.10.13
+ARG chainlink_version=v1.1.0
 
 RUN apt update && apt install --yes --no-install-recommends git make curl jq
 
