@@ -76,13 +76,12 @@ def setup_credentials(output_dir, operator_password, api_user, api_password):
     api_file = "{path}/.api".format(path=output_dir)
     env_file = "{path}/.env".format(path=output_dir)
     if admin_file:
-        if os.path.isfile(admin_file) or os.path.exists(admin_file):
+        if not (os.path.isfile(admin_file) or os.path.exists(admin_file)):
             print("Admin credentials file path set but does not exist @{path}".format(path=admin_file))
     else:
         with open(api_file, 'w') as api_creds_file:
             api_creds_file.write("{user}\n{pwd}".format(user=api_user, pwd=api_password))
 
-    if not (os.path.isfile(operator_password) or os.path.exists(operator_password)):
         with open(pwd_file, 'w') as operator_pwd_file:
             operator_pwd_file.write(operator_password)
 
